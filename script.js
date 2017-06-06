@@ -1,47 +1,9 @@
-hideUpperCase();
-
-var shft = 16;
-
-var sentences = ['ten ate neite ate nee enet ite ate inet ent eate', 'Too ato too nOt enot one totA not anot tOO aNot', 'oat itain oat tain nate eate tea anne inant nean', 'itant eate anot eat nato inate eat anot tain eat', 'nee ene ate ite tent tiet ent ine ene ete ene ate']
 
 
-var expectedLetter;
-var expectedSentence;
-var mistakes;
-
-function startGame() {
-    expectedLetter = 0;
-    expectedSentence = 0;
-    mistakes = 0
-
+function toggleKeyboards(){
+    $('#keyboard-upper-container').toggle();
+    $('#keyboard-lower-container').toggle();
 }
-function ready() {
-    var start = prompt('Type "start" to begin');
-    if (start = "start") {
-        startGame()
-
-    };
-};
-
-ready();
-
-function showUpperCase() {
-    $('#keyboard-upper-container').show();
-    $('#keyboard-lower-container').hide();
-}
-
-function hideUpperCase() {
-    $('#keyboard-upper-container').hide();
-    $('#keyboard-lower-container').show();
-}
-
-function highLight() {
-    $('#' + keyCode).css("background-color", "yellow");
-    $(document).keyup(function () {
-        $('#' + keyCode).css("background-color", "");
-    });
-};
-
 
 function animate() {
     $("#yellow-block").finish().animate({
@@ -49,36 +11,100 @@ function animate() {
     });
 }
 
-$(document).keydown(function () {
-    keycode = event.keyCode;
-    if (keycode === shft) {
-        showUpperCase();
+var sentences = ['ten ate neite ate nee enet ite ate inet ent eate', 'Too ato too nOt enot one totA not anot tOO aNot', 'oat itain oat tain nate eate tea anne inant nean', 'itant eate anot eat nato inate eat anot tain eat', 'nee ene ate ite tent tiet ent ine ene ete ene ate'];
+
+var sentenceIndex;
+var letterIndex;
+var errorCount;
+
+function startGame(){
+sentenceIndex = 0;
+letterIndex = 0;
+errorCount = 0;
+startTime = new Date().getTime();
+};
+
+startGame();
+var numberOfWords = 54;
+var currentSentence = sentences[sentenceIndex];
+var currentLetter = currentSentence.charAt(0);
+
+$('#keyboard-upper-container').hide();
+$('#sentence').text(currentSentence);
+$('#target-letter').text(currentLetter);
+
+
+//event allows us to capture and time stamp an event 
+$(document).keydown(function(event){
+    //can also use event.shiftKey
+    if(event.which === 16){
+        // $('keyboard-upper-container').show();
+        // $('keyboard-lower-container').hide();
+        toggleKeyboards();
     }
 });
 
-
-$(document).keyup(function () {
-    keycode = event.keyCode;
-    if (keycode === shft) {
-        hideUpperCase();
+$(document).keyup(function(event){
+    if (event.which === 16){
+        // $('keyboard-upper-container').hide();
+        // $('keyboard-lower-container').show();
+        toggleKeyboards();
     }
+    $('.key').removeClass('highlighted');
 });
-
-$(document).keypress(function () {
-    keyCode = event.keyCode;
-    var currentKey = String.fromCharCode(keyCode);
-    highLight();
-    var currentCharacter = sentences[expectedLetter][expectedSentence];
-    if (currentKey === currentCharacter) {
-        $('#feedback').append('<i class="glyphicon glyphicon-ok"></i>');
+//highlighted created in css
+$(document).keypress(function(event){
+    event.preventDefault();
+    $('#' + event.which).addClass('highlighted')
+    animate();
+    if(event.which === currentLetter.charCodeAt(0)){
+        $('#feedback').append('<span class ="glyphicon glyphicon-ok"></span>');
     } else {
-        $('#feedback').append('<i class="glyphicon glyphicon-remove"></i>');
+        $('#feedback').append('<span class="glyphicon glyphicon-remove"><span>')
+        errorCount++;
+    }
+
+    letterIndex++;
+
+    if (letterIndex === currentSentence.length){//<-if we are at then end of current sentence
+        //move on to the next sentence
+        sentenceIndex ++;
+        $('#yellow-block').finish().css('top', '').css('left', '');
+        
+            if(sentenceIndex === sentences.length) {//we are out of sentences; done
+                endTime = new Date().getTime();
+                var minutes = (endTime - startTime) / 60000;
+                alert('You typed ' +Math.round((numberOfWords / minutes) - (2 * errorCount))+ ' words per minute!')
+                var playAgain = prompt('type yes if you would like to play again ')
+                    if (playAgain = 'yes'){
+                        $('#feedback').empty();
+                        sentenceIndex = 0;
+                        startGame();
+                    }
+            } else {
+                //there is at least one more sentence
+                //move on to the next sentence
+                currentSentence = sentences[sentenceIndex];
+                $('#sentence').text(currentSentence);
+                //reset letter back to the first position
+                letterIndex = 0;
+                currentLetter = currentSentence.charAt(letterIndex);
+                $('#target-letter').text(currentLetter);
+                //TODO: clear out the feedback div
+                $('#feedback').empty();
+            }
+    } else {
+        currentLetter = currentSentence.charAt(letterIndex);
+        $('#target-letter').text(currentLetter);
     }
 });
 
 
+// numberOfWords / minutes - 2 * numberOfMistakes
 
-$('#sentence').text(sentences[0])
-$('#target-letter').text(sentences[expectedSentence][expectedLetter]);
+
+
+
+
 
 
