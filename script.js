@@ -16,12 +16,13 @@ var sentences = ['ten ate neite ate nee enet ite ate inet ent eate', 'Too ato to
 var sentenceIndex;
 var letterIndex;
 var errorCount;
+var startTime;
 
 function startGame(){
 sentenceIndex = 0;
 letterIndex = 0;
 errorCount = 0;
-startTime = new Date().getTime();
+
 };
 
 startGame();
@@ -55,6 +56,11 @@ $(document).keyup(function(event){
 //highlighted created in css
 $(document).keypress(function(event){
     event.preventDefault();
+
+    if (!startTime){
+        startTime = event.timeStamp;
+    }
+
     $('#' + event.which).addClass('highlighted')
     animate();
     if(event.which === currentLetter.charCodeAt(0)){
@@ -72,15 +78,28 @@ $(document).keypress(function(event){
         $('#yellow-block').finish().css('top', '').css('left', '');
         
             if(sentenceIndex === sentences.length) {//we are out of sentences; done
-                endTime = new Date().getTime();
+                var endTime = event.timeStamp;
                 var minutes = (endTime - startTime) / 60000;
-                alert('You typed ' +Math.round((numberOfWords / minutes) - (2 * errorCount))+ ' words per minute!')
-                var playAgain = prompt('type yes if you would like to play again ')
-                    if (playAgain = 'yes'){
+                $('#feedback').text('You scored ' + Math.round((numberOfWords / minutes) - (2 * errorCount))+ ' words per minute!')
+                setTimeout(function(){
+                    if(confirm('Would you like to play again?')) {
+                            sentenceIndex = 0;
+                            letterIndex = 0;
+                            currentSentence = sentences[0];
+                            currentLetter - currentSentence.charAt(0);
+                        $('#sentence').text(currentSentence);
+                        $('#target-letter').text(currentLetter);
+                        starttime = undefined;
                         $('#feedback').empty();
-                        sentenceIndex = 0;
-                        startGame();
                     }
+                }, 2000);
+                // alert('You typed ' +Math.round((numberOfWords / minutes) - (2 * errorCount))+ ' words per minute!')
+                // var playAgain = prompt('type yes if you would like to play again ')
+                //     if (playAgain = 'yes'){
+                //         $('#feedback').empty();
+                //         sentenceIndex = 0;
+                //         startGame();
+                //     }
             } else {
                 //there is at least one more sentence
                 //move on to the next sentence
@@ -90,7 +109,6 @@ $(document).keypress(function(event){
                 letterIndex = 0;
                 currentLetter = currentSentence.charAt(letterIndex);
                 $('#target-letter').text(currentLetter);
-                //TODO: clear out the feedback div
                 $('#feedback').empty();
             }
     } else {
